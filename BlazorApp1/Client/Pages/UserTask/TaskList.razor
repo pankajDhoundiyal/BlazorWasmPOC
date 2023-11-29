@@ -1,0 +1,236 @@
+﻿
+@page "/employee/task"
+@using BlazorApp1.Shared.Models
+@using BlazorApp1.Shared.Enum
+@inject HttpClient Http
+@inject IJSRuntime JsRuntime
+@using Blazored.SessionStorage
+@inject NavigationManager nav
+@inject ISessionStorageService sessionStorage
+
+<h3>TaskList</h3>
+
+<SfGrid DataSource="@tasks" AllowPaging="true" Toolbar="@(new string[] { "Edit" })">
+    <GridPageSettings PageSize="10"></GridPageSettings>
+    <GridEvents OnActionBegin="ActionBeginHandler" OnActionComplete="ActionComplete" TValue="UserTask"></GridEvents>
+    <GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" Mode="@EditMode.Dialog">
+        <Template>
+            @{
+                var task = (context as UserTask);
+                <div>
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top">Task</label>
+                            <SfTextBox ID="Tasks" @bind-Value="@(task.Tasks)" TValue="string?" Readonly="true"></SfTextBox>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top">Description</label>
+                            <SfTextBox ID="Description" @bind-Value="@(task.Description)" Readonly="true"></SfTextBox>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top">Task Assigned</label>
+                            <SfDropDownList TValue="int" TItem="Employee" @bind-Value="@task.UserId" Placeholder="Select a User" DataSource="@users" Readonly="true">
+                                <DropDownListFieldSettings Value="Id" Text="FullName"></DropDownListFieldSettings>
+                            </SfDropDownList>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top">Task Status</label>
+                            <SfDropDownList TValue="int" TItem="StatusItem" @bind-Value="@task.TaskStatusId" Placeholder="Select Task Status" DataSource="@dTaskStatuses">
+                                <DropDownListFieldSettings Value="Value" Text="Text"></DropDownListFieldSettings>
+                            </SfDropDownList>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top">Remarks</label>
+                            <SfTextBox Multiline="true" ID="Description" @bind-Value="@(task.Remarks)"></SfTextBox>
+                        </div>
+                    </div>
+                </div>
+            }
+        </Template>
+    </GridEditSettings>
+    <GridColumns>
+        <GridColumn Field=@nameof(task.Id) HeaderText="ID" IsPrimaryKey="true" Width="120"></GridColumn>
+        <GridColumn Field=@nameof(task.Tasks) HeaderText="Task" Width="140"></GridColumn>
+        <GridColumn Field=@nameof(task.Description) HeaderText="Task Description" Width="150"></GridColumn>
+        <GridColumn HeaderText="Task Status" Width="150">
+            <Template>
+                @{
+                    var status = (context as UserTask);
+                    @if (status.TaskStatus == DTaskStatus.Active)
+                    {
+                        <span>Active</span>
+                    }
+                    else if (status.TaskStatus == DTaskStatus.InProgress)
+                    {
+                        <span>InProgress</span>
+                    }
+                    else if (status.TaskStatus == DTaskStatus.Pending)
+                    {
+                        <span>Pending</span>
+                    }
+                    else if (status.TaskStatus == DTaskStatus.Completed)
+                    {
+                        <span>Completed</span>
+                    }
+                }
+            </Template>
+        </GridColumn>
+        <GridColumn  HeaderText="Task Assigned To" Width="150">
+            <Template>
+                @{
+                    var fname = (context as UserTask).User.FullName;
+                    <span>@fname</span>
+                }
+            </Template>
+        </GridColumn>
+    </GridColumns>
+</SfGrid>
+@code {
+    private UserTask[]? tasks;
+    private Employee[]? users;
+    private UserTask task = new();
+    private UserTaskCls userTaskCls = new();
+    public SfGrid<UserTask> MyGrid { get; set; }
+    private Employee[]? employees;
+    protected IEnumerable<StatusItem> dTaskStatuses = Enum.GetValues(typeof(DTaskStatus)).Cast<DTaskStatus>()
+    .Select(t => new StatusItem { Text = $"{t}", Value = (int)t }).ToList();
+    protected override async Task OnInitializedAsync()
+    {
+        
+    }
+    private string userName = string.Empty;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            userName = await sessionStorage.GetItemAsStringAsync("UserName");
+            await this.FetTasks();
+            await this.FetchUsers();
+
+            StateHasChanged();
+        }
+    }
+    private async Task FetTasks()
+    {
+        try
+        {
+            tasks = await Http.GetFromJsonAsync<UserTask[]>($"/api/usertask/gettasks/{userName}");
+        }
+        catch (Exception ex)
+        {
+            
+            throw;
+        }
+        
+    }
+    private async Task FetchUsers()
+    {
+        users = await Http.GetFromJsonAsync<Employee[]>($"/api/usertask/getusers/{userName}");
+    }
+    public async Task ActionBeginHandler(ActionEventArgs<UserTask> args)
+    {
+        if (args.RequestType == Syncfusion.Blazor.Grids.Action.BeginEdit)
+        {
+            // The Textbox component is disabled using its Enabled property
+            //this.Enabled = false;
+            Console.WriteLine("");
+        }
+        //else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Add")
+        //{
+        //    Console.WriteLine("");
+        //    var data = args.Data;
+        //    var result = await Http.PostAsJsonAsync("/api/task/add", data);
+        //    if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
+        //    {
+        //        //navigationManager.NavigateTo("employee/index");
+        //    }
+        //}
+        //else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Edit")
+        //{
+        //    Console.WriteLine("");
+        //}
+        //else if(args.Action == "Delete")
+        //{
+        //    Console.WriteLine("");
+        //}
+        //else
+        //{
+        //    //this.Enabled = true;
+        //}
+    }
+    public async Task ActionComplete(ActionEventArgs<UserTask> args)
+    {
+        if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Add) || args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.BeginEdit))
+        {
+            //MyGrid.PreventRender(false);
+        }
+        else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Add")
+        {
+            Console.WriteLine("");
+            var data = args.Data;
+            userTaskCls = new()
+            {
+                 Tasks = data.Tasks,
+                 Description = data.Description,
+                 UserId = data.UserId
+            };
+            var result = await Http.PostAsJsonAsync("/api/usertask/addtask", userTaskCls);
+            var res = result.Content.ReadAsStringAsync().Result;
+
+            if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                await this.FetTasks();
+            }
+        }
+        else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Edit")
+        {
+            var data = args.Data;
+             userTaskCls = new()
+            {
+                Id = data.Id,
+                Tasks = data.Tasks,
+                Description = data.Description,
+                UserId = data.UserId,
+                TaskStatusId = data.TaskStatusId,
+                //Comment = data.Comment
+                Remarks = data.Remarks
+            };
+            var result = await Http.PostAsJsonAsync("/api/usertask/updatetask", userTaskCls);
+            var res = result.Content.ReadAsStringAsync().Result;
+
+            if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                await this.FetTasks();
+            }
+        }
+        else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Delete && args.Action == "Delete")
+        {
+            var arg = args.Data;
+            var result = await Http.DeleteAsync($"/api/usertask/deletetask/{arg.Id}");
+            if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                await this.FetTasks();
+            }
+        }
+        else
+        {
+            //this.Enabled = true;
+        }
+    }
+}
+<style>
+    .form-group.col-md-6 {
+        width: 200px;
+    }
+
+    label.e-float-text {
+        position: relative;
+        padding-left: 0;
+        top: 10%;
+    }
+</style>

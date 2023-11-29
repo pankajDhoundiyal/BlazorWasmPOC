@@ -1,0 +1,261 @@
+﻿@page "/admin/task"
+@using BlazorApp1.Shared.Models
+@using BlazorApp1.Shared.Enum
+@inject HttpClient Http
+@inject IJSRuntime JsRuntime
+@using Blazored.SessionStorage
+@inject ISessionStorageService sessionStorage
+<h3>TaskList</h3>
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize]
+
+<SfDialog @ref="Dialog" Width="250px" Visible="false" ShowCloseIcon="true" IsModal="true">
+    <DialogEvents Closed="Closed"></DialogEvents>
+    <DialogTemplates>
+        @*Here you can customize the Header and Content of delete confirmation dialog*@
+        <Header> Delete Record</Header>
+        <Content> You are about to Delete a Record @SelectedData ?</Content>
+    </DialogTemplates>
+    <DialogButtons>
+        <DialogButton OnClick="@OkClick" Content="OK" IsPrimary="true"></DialogButton>
+        <DialogButton OnClick="@CancelClick" Content="Cancel"></DialogButton>
+    </DialogButtons>
+</SfDialog>
+
+<SfGrid DataSource="@tasks" AllowPaging="true" Toolbar="@(new string[] {"Add", "Edit" ,"Delete" })">
+    <GridPageSettings PageSize="5"></GridPageSettings>
+    <GridEvents OnActionBegin="OnActionBegin" RowSelected="RowSelectHandler" OnActionComplete="ActionComplete" TValue="UserTask"></GridEvents>
+    @*<GridEvents OnActionBegin="ActionBeginHandler" RowSelected="RowSelectHandler" OnActionComplete="ActionComplete" TValue="UserTask"></GridEvents>*@
+    <GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" Mode="@EditMode.Dialog">
+        <Template>
+            @{
+                var task = (context as UserTask);
+                <div>
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top">Task</label>
+                            <SfTextBox ID="Tasks" @bind-Value="@(task.Tasks)" TValue="string?"></SfTextBox>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top">Description</label>
+                            <SfTextBox ID="Description" @bind-Value="@(task.Description)"></SfTextBox>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top">Task Assigned</label>
+                            <SfDropDownList TValue="int" TItem="Employee" @bind-Value="@task.UserId" Placeholder="Select a User" DataSource="@users">
+                                <DropDownListFieldSettings Value="Id" Text="FullName"></DropDownListFieldSettings>
+                            </SfDropDownList>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top">Task Status</label>
+                            <SfDropDownList TValue="int" TItem="StatusItem" @bind-Value="@task.TaskStatusId" Placeholder="Select Task Status" DataSource="@dTaskStatuses">
+                                <DropDownListFieldSettings Value="Value" Text="Text"></DropDownListFieldSettings>
+                            </SfDropDownList>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top">Remarks</label>
+                            <SfTextBox Readonly="true" Multiline="true" ID="Remarks" @bind-Value="@(task.Remarks)"></SfTextBox>
+                        </div>
+                    </div>
+                </div>
+            }
+        </Template>
+    </GridEditSettings>
+    <GridColumns>
+        <GridColumn Field=@nameof(task.Id) HeaderText="ID" IsPrimaryKey="true" Width="120"></GridColumn>
+        <GridColumn Field=@nameof(task.Tasks) HeaderText="Task" Width="140"></GridColumn>
+        <GridColumn Field=@nameof(task.Description) HeaderText="Task Description" Width="150"></GridColumn>
+        <GridColumn Field=@nameof(task.TaskStatus) HeaderText="Task Status" Width="150">
+        </GridColumn>
+        <GridColumn HeaderText="Task Assigned To" Width="150">
+            <Template>
+                @{
+                    var fname = (context as UserTask).User.FullName;
+                    <span>@fname</span>
+                }
+            </Template>
+        </GridColumn>
+    </GridColumns>
+</SfGrid>
+@code {
+    SfDialog Dialog;
+    SfGrid<UserTask> Grid;
+    public object SelectedData;
+    public bool flag = true;
+    public void Closed()
+    {
+        flag = true;
+    }
+    private async Task OkClick()
+    {
+        int id = (int)SelectedData;
+        //Grid.DeleteRecord();   //Delete the record programmatically while clicking OK button.
+        var result = await Http.DeleteAsync($"/api/task/deletetask/{id}");
+        if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            await this.FetTasks();
+        }
+        Dialog.HideAsync();
+    }
+    public void OnActionBegin(ActionEventArgs<UserTask> Args)
+    {
+        if (Args.RequestType.ToString() == "Delete" && flag)
+        {
+            Args.Cancel = true;  //Cancel default delete action.
+            Dialog.ShowAsync();
+            flag = false;
+        }
+    }
+    private void CancelClick()
+    {
+        Dialog.HideAsync();
+    }
+    public void RowSelectHandler(RowSelectEventArgs<UserTask> Args)
+    {
+        SelectedData = Args.Data.Id;
+    }
+    private UserTask[]? tasks;
+    private Employee[]? users;
+    private UserTask task = new();
+    private UserTaskCls userTaskCls = new();
+    public SfGrid<UserTask> MyGrid { get; set; }
+    private Employee[]? employees;
+    protected IEnumerable<StatusItem> dTaskStatuses = Enum.GetValues(typeof(DTaskStatus)).Cast<DTaskStatus>()
+    .Select(t => new StatusItem { Text = $"{t}", Value = (int)t }).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+    private string userName = string.Empty;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            userName = await sessionStorage.GetItemAsStringAsync("UserName");
+            await this.FetTasks();
+            await this.FetchUsers();
+
+            StateHasChanged();
+        }
+    }
+    private async Task FetTasks()
+    {
+        tasks = await Http.GetFromJsonAsync<UserTask[]>($"/api/task/gettasks/{userName}");
+    }
+    private async Task FetchUsers()
+    {
+        users = await Http.GetFromJsonAsync<Employee[]>("/api/task/getusers");
+    }
+    public async Task ActionBeginHandler(ActionEventArgs<UserTask> args)
+    {
+        if (args.RequestType == Syncfusion.Blazor.Grids.Action.BeginEdit)
+        {
+            // The Textbox component is disabled using its Enabled property
+            //this.Enabled = false;
+            Console.WriteLine("");
+        }
+        //else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Add")
+        //{
+        //    Console.WriteLine("");
+        //    var data = args.Data;
+        //    var result = await Http.PostAsJsonAsync("/api/task/add", data);
+        //    if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
+        //    {
+        //        //navigationManager.NavigateTo("employee/index");
+        //    }
+        //}
+        //else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Edit")
+        //{
+        //    Console.WriteLine("");
+        //}
+        //else if(args.Action == "Delete")
+        //{
+        //    Console.WriteLine("");
+        //}
+        //else
+        //{
+        //    //this.Enabled = true;
+        //}
+    }
+    public async Task ActionComplete(ActionEventArgs<UserTask> args)
+    {
+        if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Add) || args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.BeginEdit))
+        {
+            //MyGrid.PreventRender(false);
+        }
+        else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Add")
+        {
+            Console.WriteLine("");
+            var data = args.Data;
+            userTaskCls = new()
+            {
+                 Tasks = data.Tasks,
+                 Description = data.Description,
+                 UserId = data.UserId,
+                 TaskStatusId = data.TaskStatusId
+            };
+            var result = await Http.PostAsJsonAsync("/api/task/addtask", userTaskCls);
+            var res = result.Content.ReadAsStringAsync().Result;
+
+            if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                await this.FetTasks();
+            }
+        }
+        else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Edit")
+        {
+            var data = args.Data;
+            userTaskCls = new()
+            {
+                Id = data.Id,
+                Tasks = data.Tasks,
+                Description = data.Description,
+                UserId = data.UserId,
+                TaskStatusId = data.TaskStatusId
+            };
+            var result = await Http.PostAsJsonAsync("/api/task/updatetask", userTaskCls);
+            var res = result.Content.ReadAsStringAsync().Result;
+
+            if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                await this.FetTasks();
+            }
+        }
+        //else if (args.RequestType.ToString() == "Delete" && flag)
+        //{
+        //    args.Cancel = true;  //Cancel default delete action.
+        //    Dialog.ShowAsync();
+        //    flag = false;
+        //}
+        //else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Delete && args.Action == "Delete")
+        //{
+        //    var arg = args.Data;
+        //    var result = await Http.DeleteAsync($"/api/task/deletetask/{arg.Id}");
+        //    if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
+        //    {
+        //        await this.FetTasks();
+        //    }
+        //}
+        else
+        {
+            //this.Enabled = true;
+        }
+    }
+}
+<style>
+    .form-group.col-md-6 {
+        width: 200px;
+    }
+
+    label.e-float-text {
+        position: relative;
+        padding-left: 0;
+        top: 10%;
+    }
+</style>

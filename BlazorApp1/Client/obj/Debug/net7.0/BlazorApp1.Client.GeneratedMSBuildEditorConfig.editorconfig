@@ -1,0 +1,107 @@
+is_global = true
+build_property.EnableAotAnalyzer = 
+build_property.EnableSingleFileAnalyzer = 
+build_property.EnableTrimAnalyzer = false
+build_property.IncludeAllContentForSelfExtract = 
+build_property.TargetFramework = net7.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = false
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = browser
+build_property.RootNamespace = BlazorApp1.Client
+build_property.RootNamespace = BlazorApp1.Client
+build_property.ProjectDir = F:\Projects\Blazor\BlazorApp1\BlazorApp1\Client\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 7.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = F:\Projects\Blazor\BlazorApp1\BlazorApp1\Client
+build_property._RazorSourceGeneratorDebug = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Components/ToastBase.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xUb2FzdEJhc2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Pages/Account/Login.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWNjb3VudFxMb2dpbi5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Pages/Account/Register.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWNjb3VudFxSZWdpc3Rlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Pages/Admin/TaskManagement/TaskList.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQWRtaW5cVGFza01hbmFnZW1lbnRcVGFza0xpc3QucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Pages/Counter.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcQ291bnRlci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Pages/Employee/AddEmployee.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRW1wbG95ZWVcQWRkRW1wbG95ZWUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Pages/Employee/EmployeeInfo.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRW1wbG95ZWVcRW1wbG95ZWVJbmZvLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Pages/Employee/EmployeeList.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRW1wbG95ZWVcRW1wbG95ZWVMaXN0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Pages/Employee/EmployeeView.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRW1wbG95ZWVcRW1wbG95ZWVWaWV3LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Pages/FetchData.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRmV0Y2hEYXRhLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Pages/Index.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXgucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Pages/UserTask/TaskList.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlclRhc2tcVGFza0xpc3QucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Pages/UserTask/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcVXNlclRhc2tcX0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Shared/LoginLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXExvZ2luTGF5b3V0LnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Shared/SurveyPrompt.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXFN1cnZleVByb21wdC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = X0ltcG9ydHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Shared/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE1haW5MYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-s8xsnq6cv2
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Shared/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXE5hdk1lbnUucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-aw7s1uks9t
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Shared/UserLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXFVzZXJMYXlvdXQucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-t93d8r0q8q
+
+[F:/Projects/Blazor/BlazorApp1/BlazorApp1/Client/Shared/UserNav.razor]
+build_metadata.AdditionalFiles.TargetPath = U2hhcmVkXFVzZXJOYXYucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-ooo7fy7774

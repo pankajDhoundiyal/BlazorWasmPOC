@@ -1,0 +1,59 @@
+﻿@inherits LayoutComponentBase
+@using Blazored.SessionStorage
+@inject NavigationManager nav
+@inject ISessionStorageService sessionStorage
+@using BlazorApp1.Client.Components;
+@using BlazorApp1.Client.AuthProviders
+@inject AuthenticationStateProvider _stateProvider;
+
+<AuthorizeView>
+    <Authorized>
+        <div class="page">
+            <div class="sidebar">
+                <NavMenu />
+            </div>
+            <ToastBase></ToastBase>
+            <main>
+                <div class="top-row px-4">
+                    <span>Welcome to  &nbsp;</span> <span style="color:brown; font-size:16px;"> @userName</span>
+                    &nbsp;
+                    <a href="#" @onclick="Logout">Logout</a>
+                </div>
+
+                <article class="content px-4">
+                    @Body
+                </article>
+            </main>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    private string userName= string.Empty;
+    [CascadingParameter] protected Task<AuthenticationState> AuthStat { get; set; }
+    protected async override Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        var user = (await AuthStat).User;
+        if (!user.Identity.IsAuthenticated)
+        {
+            nav.NavigateTo($"account/login");
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            userName = await sessionStorage.GetItemAsStringAsync("UserName");
+
+            StateHasChanged();
+        }
+    }
+    private async Task Logout()
+    {
+        //userName = null;
+        await sessionStorage.RemoveItemAsync("UserName");
+        ((TestAuthStateProvider)_stateProvider).MarkUserAsLoggedOut();
+        nav.NavigateTo("/");
+    }
+}

@@ -1,0 +1,75 @@
+﻿@layout LoginLayout
+@page "/"
+@page "/account/login"
+@using BlazorApp1.Client.Models.Account
+@using BlazorApp1.Shared.Models
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+@using Blazored.SessionStorage
+@using BlazorApp1.Client.AuthProviders
+@inject ISessionStorageService _sessionStorage
+@inject AuthenticationStateProvider _stateProvider;
+@if (loader == true)
+{
+    <div class="spinner"></div>
+}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card mt-3 mb-3">
+            <h4 class="card-header">Login</h4>
+            <div class="card-body">
+                <EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+                    <DataAnnotationsValidator />
+                    <div class="form-group">
+                        <label>Username</label>
+                        <InputText @bind-Value="model.Username" class="form-control" />
+                        <ValidationMessage For="@(() => model.Username)" />
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <InputText @bind-Value="model.Password" type="password" class="form-control" />
+                        <ValidationMessage For="@(() => model.Password)" />
+                    </div>
+                    <div class="form-group mt-3">
+                        <button disabled="@loading" class="btn btn-primary">
+                            @if (loading)
+                            {
+                                <span class="spinner-border spinner-border-sm mr-1"></span>
+                            }
+                            Login
+                        </button>
+                        <NavLink href="account/register" class="btn btn-link">Register</NavLink>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private Models.Account.Login model = new Models.Account.Login();
+    private bool loading;
+    private bool loader;
+    private async void OnValidSubmit()
+    {
+        loader = true;
+        var result = await Http.PostAsJsonAsync("/api/account/login", model);
+        if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            loader = false;
+            await _sessionStorage.SetItemAsync<string>("UserName", model.Username);
+            var res = await result.Content.ReadFromJsonAsync<Employee>();
+            if (res.Role == 1)
+            {
+                ((TestAuthStateProvider)_stateProvider).MarkUserAsAuthenticated(model.Username);
+                navigationManager.NavigateTo("admin/employee/index");
+            }
+            else if (res.Role == 2)
+            {
+                ((TestAuthStateProvider)_stateProvider).MarkUserAsAuthenticated(model.Username);
+                navigationManager.NavigateTo("employee/task");
+            }
+        }
+    }
+}
