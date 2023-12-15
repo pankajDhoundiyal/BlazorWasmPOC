@@ -60,6 +60,7 @@
             loader = false;
             await _sessionStorage.SetItemAsync<string>("UserName", model.Username);
             var res = await result.Content.ReadFromJsonAsync<Employee>();
+            await _sessionStorage.SetItemAsync<string>("UserNameH", res.FullName);
             if (res.Role == 1)
             {
                 ((TestAuthStateProvider)_stateProvider).MarkUserAsAuthenticated(model.Username);

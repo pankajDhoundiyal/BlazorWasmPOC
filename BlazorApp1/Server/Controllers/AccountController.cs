@@ -4,6 +4,10 @@ using BlazorApp1.Shared.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MimeKit.Text;
+using MimeKit;
+using System.Text;
+using MailKit.Security;
 
 namespace BlazorApp1.Server.Controllers
 {
@@ -12,10 +16,11 @@ namespace BlazorApp1.Server.Controllers
     public class AccountController : ControllerBase
     {
         private readonly SQLDBContext _dbContext;
-
-        public AccountController(SQLDBContext context)
+        private readonly IConfiguration configuration;
+        public AccountController(SQLDBContext context, IConfiguration configuration)
         {
             _dbContext = context;
+            this.configuration = configuration;
         }
         [Route("login")]
         [HttpPost]
@@ -62,7 +67,7 @@ namespace BlazorApp1.Server.Controllers
             }
 
             return NoContent();
-        }
+        }        
     }
 }
   

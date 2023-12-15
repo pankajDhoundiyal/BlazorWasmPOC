@@ -98,7 +98,7 @@
         var result = await Http.DeleteAsync($"/api/task/deletetask/{id}");
         if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            await this.FetTasks();
+           await this.FetTasks();
         }
         Dialog.HideAsync();
     }

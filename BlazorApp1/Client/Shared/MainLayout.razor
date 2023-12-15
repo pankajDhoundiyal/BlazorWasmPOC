@@ -15,7 +15,7 @@
             <ToastBase></ToastBase>
             <main>
                 <div class="top-row px-4">
-                    <span>Welcome to  &nbsp;</span> <span style="color:brown; font-size:16px;"> @userName</span>
+                    <span>Welcome  &nbsp;</span> <span style="color:brown; font-size:16px;"> @userNameH</span>
                     &nbsp;
                     <a href="#" @onclick="Logout">Logout</a>
                 </div>
@@ -30,6 +30,7 @@
 
 @code {
     private string userName= string.Empty;
+    private string userNameH = string.Empty;
     [CascadingParameter] protected Task<AuthenticationState> AuthStat { get; set; }
     protected async override Task OnInitializedAsync()
     {
@@ -45,6 +46,7 @@
         if (firstRender)
         {
             userName = await sessionStorage.GetItemAsStringAsync("UserName");
+            userNameH = await sessionStorage.GetItemAsStringAsync("UserNameH");
 
             StateHasChanged();
         }
