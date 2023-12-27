@@ -1,4 +1,5 @@
 ﻿@page "/admin/employee/index"
+@using BlazorApp1.Shared.Enum
 @using BlazorApp1.Shared.Models
 @inject HttpClient Http
 @inject IJSRuntime JsRuntime
@@ -7,6 +8,7 @@
 @inject ISessionStorageService sessionStorage
 @using BlazorApp1.Client.Components
 @using Microsoft.AspNetCore.Authorization
+@inject IToastService toastService
 @attribute [Authorize]
 
 <h3>Employee List</h3>
@@ -31,6 +33,7 @@
             <th>State</th>
             <th>City</th>
             <th>Joining Date</th>
+            <th>Role</th>
             <th>Action</th>
         </tr>
     </thead>
@@ -47,7 +50,7 @@
             {
                 <tr>
                     <td width="10%">@employee.Code</td>
-                    <td width="25%">
+                    <td width="30%">
                         <img src="@employee.thumbnail" alt="" width="32" height="32" class="rounded-circle me-2">
                         <a href="@GetEmployeeViewUrl(@employee)">@employee.FullName</a>
                     </td>
@@ -55,6 +58,16 @@
                     <td width="15%">@employee.State</td>
                     <td width="15%">@employee.City</td>
                     <td width="10%">@employee.JoiningDate.ToShortDateString()</td>
+                    <td width="10%">
+                        @if((Role)employee.Role == Role.User)
+                        {
+                            <span>User</span>
+                        }
+                        else if ((Role)employee.Role == Role.Expert)
+                        {
+                            <span>Expert</span>
+                        }
+                    </td>
                     <td width="7%">
                         <a href="@GetEditEmployeeViewUrl(@employee)" class="btn btn-primary" tabindex="-1" role="button" aria-disabled="true">
                             @*<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
@@ -121,7 +134,11 @@
             var result = await Http.DeleteAsync($"/api/employee/deleteemployee/{employee.Id}");
             if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
             {
+                toastService.ShowToast(ToastLevel.Success, "User deleted Successfully");
                 await this.FetEmployees();
+            }else
+            {
+                toastService.ShowToast(ToastLevel.Error, "Error Occured");
             }
         }
     }

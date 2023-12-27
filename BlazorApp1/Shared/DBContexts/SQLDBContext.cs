@@ -21,6 +21,7 @@ namespace BlazorApp1.Shared.DBContexts
         public virtual DbSet<EmployeeProfilePic> EmployeeProfilePics { get; set; }
         public virtual DbSet<UserTask> UserTask { get; set; }
         public virtual DbSet<UserTaskComment> UserTaskComment { get; set; }
+        public virtual DbSet<Categories> UserCategories { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

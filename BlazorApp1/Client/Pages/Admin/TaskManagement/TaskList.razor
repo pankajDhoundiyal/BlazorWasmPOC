@@ -5,8 +5,10 @@
 @inject IJSRuntime JsRuntime
 @using Blazored.SessionStorage
 @inject ISessionStorageService sessionStorage
-<h3>TaskList</h3>
+<h3>Tasks</h3>
 @using Microsoft.AspNetCore.Authorization
+@using System.Globalization
+@inject IToastService toastService
 
 @attribute [Authorize]
 
@@ -24,7 +26,7 @@
 </SfDialog>
 
 <SfGrid DataSource="@tasks" AllowPaging="true" Toolbar="@(new string[] {"Add", "Edit" ,"Delete" })">
-    <GridPageSettings PageSize="5"></GridPageSettings>
+    <GridPageSettings PageSize="10"></GridPageSettings>
     <GridEvents OnActionBegin="OnActionBegin" RowSelected="RowSelectHandler" OnActionComplete="ActionComplete" TValue="UserTask"></GridEvents>
     @*<GridEvents OnActionBegin="ActionBeginHandler" RowSelected="RowSelectHandler" OnActionComplete="ActionComplete" TValue="UserTask"></GridEvents>*@
     <GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" Mode="@EditMode.Dialog">
@@ -34,17 +36,23 @@
                 <div>
                     <div class="row">
                         <div class="form-group col-md-6">
-                            <label class="e-float-text e-label-top">Task</label>
+                            <label class="e-float-text e-label-top">Task Name</label>
                             <SfTextBox ID="Tasks" @bind-Value="@(task.Tasks)" TValue="string?"></SfTextBox>
                         </div>
                         <div class="form-group col-md-6">
-                            <label class="e-float-text e-label-top">Description</label>
+                            <label class="e-float-text e-label-top">Task Description</label>
                             <SfTextBox ID="Description" @bind-Value="@(task.Description)"></SfTextBox>
                         </div>
                     </div>
                     <div class="row mt-3">
                         <div class="form-group col-md-6">
-                            <label class="e-float-text e-label-top">Task Assigned</label>
+                            <label class="e-float-text e-label-top">Task Due Date</label>
+                            <SfDatePicker TValue="DateTime?" @bind-Value='@task.DueDate' Placeholder='Choose a Date'></SfDatePicker>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top">Task Assigned To</label>
                             <SfDropDownList TValue="int" TItem="Employee" @bind-Value="@task.UserId" Placeholder="Select a User" DataSource="@users">
                                 <DropDownListFieldSettings Value="Id" Text="FullName"></DropDownListFieldSettings>
                             </SfDropDownList>
@@ -61,6 +69,14 @@
                             <label class="e-float-text e-label-top">Remarks</label>
                             <SfTextBox Readonly="true" Multiline="true" ID="Remarks" @bind-Value="@(task.Remarks)"></SfTextBox>
                         </div>
+                        @if (!task.IsAgreeWithDueDate)
+                        {
+                            <div class="form-group col-md-6">
+                                <label class="e-float-text e-label-top">Reason</label>
+                                <SfTextBox Readonly="true" Multiline="true" ID="Reason" @bind-Value="@(task.Reason)"></SfTextBox>
+                            </div>
+                        }
+
                     </div>
                 </div>
             }
@@ -72,17 +88,65 @@
         <GridColumn Field=@nameof(task.Description) HeaderText="Task Description" Width="150"></GridColumn>
         <GridColumn Field=@nameof(task.TaskStatus) HeaderText="Task Status" Width="150">
         </GridColumn>
+        <GridColumn Field=@nameof(task.DueDate) HeaderText="Task DueDate" Width="150" Format="MM/dd/yyyy">
+        </GridColumn>
+        <GridColumn HeaderText="DueDate Status" Width="150">
+            <Template>
+                @{
+                    var data = (context as UserTask);
+                    //var dueDate = String.Format("{0:MM/dd/yyyy}", data.DueDate);
+                    //var parameterDate = DateTime.ParseExact(dueDate, "MM/dd/yyyy", CultureInfo.InvariantCulture);
+                    if (data.DueDate < DateTime.Today)
+                    {
+                        <span class="tag red-tag">Expired</span>
+                    }
+                    else
+                    {
+                        <span class="tag green-tag">Active</span>
+                    }
+                }
+            </Template>
+        </GridColumn>
         <GridColumn HeaderText="Task Assigned To" Width="150">
             <Template>
                 @{
-                    var fname = (context as UserTask).User.FullName;
-                    <span>@fname</span>
+                    var data = (context as UserTask).User.FullName;
+                    <span>@data</span>
                 }
             </Template>
         </GridColumn>
     </GridColumns>
 </SfGrid>
+<style>
+    .tag {
+        width: auto;
+        display: block;
+        background: #ddd;
+        padding: 3px;
+        border-radius: 3px;
+        border: 1px solid;
+        text-align: center;
+        max-width: 150px;
+        &.red-tag
+
+    {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+
+    &.green-tag {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+
+    }
+</style>
 @code {
+    public bool showReason { get; set; }
+    public DateTime MinDate { get; set; } = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 05);
+    public DateTime MaxDate { get; set; } = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 27);
     SfDialog Dialog;
     SfGrid<UserTask> Grid;
     public object SelectedData;
@@ -98,7 +162,11 @@
         var result = await Http.DeleteAsync($"/api/task/deletetask/{id}");
         if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
         {
-           await this.FetTasks();
+            toastService.ShowToast(ToastLevel.Success, "Task deleted Successfully");
+            await this.FetTasks();
+        }else
+        {
+            toastService.ShowToast(ToastLevel.Error, "Error Occured");
         }
         Dialog.HideAsync();
     }
@@ -158,7 +226,9 @@
         {
             // The Textbox component is disabled using its Enabled property
             //this.Enabled = false;
-            Console.WriteLine("");
+            var data = args.Data;
+            if (!data.IsAgreeWithDueDate)
+                showReason = true;
         }
         //else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Add")
         //{
@@ -195,17 +265,22 @@
             var data = args.Data;
             userTaskCls = new()
             {
-                 Tasks = data.Tasks,
-                 Description = data.Description,
-                 UserId = data.UserId,
-                 TaskStatusId = data.TaskStatusId
+                Tasks = data.Tasks,
+                Description = data.Description,
+                UserId = data.UserId,
+                TaskStatusId = data.TaskStatusId,
+                DueDate = data.DueDate
             };
             var result = await Http.PostAsJsonAsync("/api/task/addtask", userTaskCls);
             var res = result.Content.ReadAsStringAsync().Result;
 
             if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
             {
+                toastService.ShowToast(ToastLevel.Success, "Task added Successfully");
                 await this.FetTasks();
+            }else
+            {
+                toastService.ShowToast(ToastLevel.Error, "Error Occured");
             }
         }
         else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Edit")
@@ -217,14 +292,20 @@
                 Tasks = data.Tasks,
                 Description = data.Description,
                 UserId = data.UserId,
-                TaskStatusId = data.TaskStatusId
+                TaskStatusId = data.TaskStatusId,
+                DueDate = data.DueDate
             };
             var result = await Http.PostAsJsonAsync("/api/task/updatetask", userTaskCls);
             var res = result.Content.ReadAsStringAsync().Result;
 
             if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
             {
+                toastService.ShowToast(ToastLevel.Success, "Task updated Successfully");
                 await this.FetTasks();
+            }
+            else
+            {
+                toastService.ShowToast(ToastLevel.Error, "Error Occured");
             }
         }
         //else if (args.RequestType.ToString() == "Delete" && flag)

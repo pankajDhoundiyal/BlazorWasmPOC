@@ -2,6 +2,7 @@ using BlazorApp1.Client;
 using BlazorApp1.Client.AuthProviders;
 using BlazorApp1.Client.Services;
 using Blazored.SessionStorage;
+using Blazored.Toast;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -18,5 +19,6 @@ builder.Services.AddBlazoredSessionStorage();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<ToastService>();
 builder.Services.AddScoped<AuthenticationStateProvider, TestAuthStateProvider>();
+builder.Services.AddBlazoredToast();
 
 await builder.Build().RunAsync();

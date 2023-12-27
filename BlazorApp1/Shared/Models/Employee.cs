@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BlazorApp1.Shared.Enum;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -54,7 +55,10 @@ namespace BlazorApp1.Shared.Models
 
         [NotMapped]
         public string? ImageType { get; set; }
-        public int Role { get; set; } = 2;
+        public int Role { get; set; }
+        public int ExpertCategoryId { get; set; }
+        [NotMapped]
+        public string ExpertFulllName { get; set; } = string.Empty;
     }
     public class StatusItem
     {

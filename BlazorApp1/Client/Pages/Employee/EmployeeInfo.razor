@@ -1,4 +1,6 @@
-﻿@using BlazorApp1.Shared.Models
+﻿@using BlazorApp1.Shared.Enum
+@using BlazorApp1.Shared.Models
+@inject HttpClient Http
 
 <h3>@HeaderText</h3>
 <hr />
@@ -94,6 +96,32 @@
                 <ValidationMessage For="@(() => Employee.PhoneNo)" />
             </div>
         </div>
+        <div class="row mb-3">
+            <label for="inputPhone" class="col-sm-2 col-form-label">Role</label>
+            <div class="col-sm-10">
+                <InputSelect class="form-select" @bind-Value="Employee.Role">
+                    <option value="0">--select role--</option>
+                    @foreach (var display in roles)
+                    {
+                        <option value="@display.Id">@display.Text</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => Employee.Role)" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="inputPhone" class="col-sm-2 col-form-label">Expert in Category</label>
+            <div class="col-sm-10">
+                <InputSelect class="form-select" @bind-Value="Employee.ExpertCategoryId">
+                    <option value="0">--select category--</option>
+                    @foreach (var display in expertCategory)
+                    {
+                        <option value="@display.Id">@display.CategoryName</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => Employee.ExpertCategoryId)" />
+            </div>
+        </div>
 
         <div class="row mb-3">
             <label for="inputPhone" class="col-sm-2 col-form-label">Profile Image</label>
@@ -122,14 +150,23 @@
     [Parameter] public bool ReadOnlyMode { get; set; }
 
     [Parameter] public EventCallback OnValidSubmit { get; set; }
+    List<EnumModel> roles = new();
+    private List<Categories> expertCategory=new();
 
     string imgUrl = string.Empty;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-
-        Console.WriteLine(ReadOnlyMode);
+        await base.OnInitializedAsync();
+        //Console.WriteLine(ReadOnlyMode);
+        
+        roles = ((Role[])Enum.GetValues(typeof(Role))).Select(c => new EnumModel() { Id = (int)c, Text = c.ToString() }).ToList();
+        roles.RemoveAt(0);
+        await this.FetCategories(); //((ExpertCategory[])Enum.GetValues(typeof(ExpertCategory))).Select(c => new EnumModel() { Id = (int)c, Text = c.ToString() }).ToList();
+    }
+    private async Task FetCategories()
+    {
+        expertCategory = await Http.GetFromJsonAsync<List<Categories>>($"/api/category/GetCategories/");
     }
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
@@ -142,5 +179,10 @@
         
         Employee.thumbnail = $"data:{imageType};base64,{Convert.ToBase64String(buffers)}";
         Employee.ImageType = imageType;
+    }
+    class EnumModel
+    {
+        public string? Text { get; set; }
+        public int Id { get; set; }
     }
 }

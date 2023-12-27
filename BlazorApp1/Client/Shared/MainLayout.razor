@@ -5,7 +5,14 @@
 @using BlazorApp1.Client.Components;
 @using BlazorApp1.Client.AuthProviders
 @inject AuthenticationStateProvider _stateProvider;
+@using Blazored.Toast.Configuration
 
+<BlazoredToasts Position="Blazored.Toast.Configuration.ToastPosition.TopRight"
+                IconType="IconType.Material"
+                SuccessClass="success-toast-override"
+                ShowProgressBar="true"
+                RemoveToastsOnNavigation="true"
+                Timeout="3" />
 <AuthorizeView>
     <Authorized>
         <div class="page">

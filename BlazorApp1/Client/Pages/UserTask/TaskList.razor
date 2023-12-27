@@ -1,5 +1,4 @@
-﻿
-@page "/employee/task"
+﻿@page "/employee/task"
 @using BlazorApp1.Shared.Models
 @using BlazorApp1.Shared.Enum
 @inject HttpClient Http
@@ -8,7 +7,7 @@
 @inject NavigationManager nav
 @inject ISessionStorageService sessionStorage
 
-<h3>TaskList</h3>
+<h3>Tasks</h3>
 
 <SfGrid DataSource="@tasks" AllowPaging="true" Toolbar="@(new string[] { "Edit" })">
     <GridPageSettings PageSize="10"></GridPageSettings>
@@ -30,25 +29,60 @@
                     </div>
                     <div class="row mt-3">
                         <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top">Task Due Date</label>
+                            <SfDatePicker TValue="DateTime?" @bind-Value='@task.DueDate' Placeholder='Choose a Date' Readonly="true"></SfDatePicker>
+                        </div>
+                        <div class="form-group col-md-6">
                             <label class="e-float-text e-label-top">Task Assigned</label>
                             <SfDropDownList TValue="int" TItem="Employee" @bind-Value="@task.UserId" Placeholder="Select a User" DataSource="@users" Readonly="true">
                                 <DropDownListFieldSettings Value="Id" Text="FullName"></DropDownListFieldSettings>
                             </SfDropDownList>
                         </div>
+                    </div>
+                    <div class="row mt-3">
+
                         <div class="form-group col-md-6">
                             <label class="e-float-text e-label-top">Task Status</label>
                             <SfDropDownList TValue="int" TItem="StatusItem" @bind-Value="@task.TaskStatusId" Placeholder="Select Task Status" DataSource="@dTaskStatuses">
                                 <DropDownListFieldSettings Value="Value" Text="Text"></DropDownListFieldSettings>
                             </SfDropDownList>
                         </div>
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top"></label>
+                            <SfCheckBox Label="Agree with the DueDate" @bind-Checked="@(task.IsAgreeWithDueDate)" @oninput="CheckboxChanged"></SfCheckBox>
+                        </div>
                     </div>
-                    
+
                     <div class="row mt-3">
                         <div class="form-group col-md-6">
                             <label class="e-float-text e-label-top">Remarks</label>
                             <SfTextBox Multiline="true" ID="Description" @bind-Value="@(task.Remarks)"></SfTextBox>
                         </div>
+                        @if (ShowReason)
+                        {
+                            <div class="form-group col-md-6">
+                                <label class="e-float-text e-label-top">Reason</label>
+                                <SfTextBox Multiline="true" ID="Description" @bind-Value="@(task.Reason)"></SfTextBox>
+                            </div>
+                        }
                     </div>
+                    <div class="row mt-2">
+                        <div class="form-group col-md-6">
+                            <label class="e-float-text e-label-top"></label>
+                            <SfCheckBox Label="Want Expert Help" @bind-Checked="@(task.IsExpertHelpRequired)" @oninput="expCheckboxChanged"></SfCheckBox>
+                        </div>
+                    </div>
+                    @if(ShowExperts)
+                    {
+                        <div class="row mt-3">
+                            <div class="form-group col-md-8">
+                                <label class="e-float-text e-label-top">Experts</label>
+                                <SfDropDownList TValue="int" TItem="Employee" @bind-Value="@task.ExpertId" Placeholder="Select Experts" DataSource="@experts">
+                                    <DropDownListFieldSettings Value="Id" Text="ExpertFulllName"></DropDownListFieldSettings>
+                                </SfDropDownList>
+                            </div>
+                        </div>
+                    }
                 </div>
             }
         </Template>
@@ -80,7 +114,24 @@
                 }
             </Template>
         </GridColumn>
-        <GridColumn  HeaderText="Task Assigned To" Width="150">
+        <GridColumn Field=@nameof(task.DueDate) HeaderText="Task DueDate" Width="150" Format="MM/dd/yyyy">
+        </GridColumn>
+        <GridColumn HeaderText="DueDate Status" Width="150">
+            <Template>
+                @{
+                    var data = (context as UserTask);
+                    if (data.DueDate < DateTime.Today)
+                    {
+                        <span class="tag red-tag">Expired</span>
+                    }
+                    else
+                    {
+                        <span class="tag green-tag">Active</span>
+                    }
+                }
+            </Template>
+        </GridColumn>
+        <GridColumn HeaderText="Task Assigned To" Width="150">
             <Template>
                 @{
                     var fname = (context as UserTask).User.FullName;
@@ -90,18 +141,67 @@
         </GridColumn>
     </GridColumns>
 </SfGrid>
+<style>
+    .tag {
+        width: auto;
+        display: block;
+        background: #ddd;
+        padding: 3px;
+        border-radius: 3px;
+        border: 1px solid;
+        text-align: center;
+        max-width: 150px;
+        &.red-tag
+
+    {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+
+    &.green-tag {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+
+    }
+</style>
 @code {
+    public bool ShowReason;
+    public bool ShowExperts;
     private UserTask[]? tasks;
     private Employee[]? users;
     private UserTask task = new();
     private UserTaskCls userTaskCls = new();
     public SfGrid<UserTask> MyGrid { get; set; }
     private Employee[]? employees;
+    private Employee[]? experts;
     protected IEnumerable<StatusItem> dTaskStatuses = Enum.GetValues(typeof(DTaskStatus)).Cast<DTaskStatus>()
     .Select(t => new StatusItem { Text = $"{t}", Value = (int)t }).ToList();
+    private void CheckboxChanged(ChangeEventArgs e)
+    {
+        // get the checkbox state
+        var value = e.Value;
+        //if ((bool)value)
+        ShowReason = !ShowReason;
+        // else
+        //     ShowReason = true;
+
+        StateHasChanged();
+
+    }
+    private void expCheckboxChanged(ChangeEventArgs e)
+    {
+        // get the checkbox state
+        var value = e.Value;
+        ShowExperts = !ShowExperts;
+
+        StateHasChanged();
+    }
     protected override async Task OnInitializedAsync()
     {
-        
+
     }
     private string userName = string.Empty;
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -111,6 +211,7 @@
             userName = await sessionStorage.GetItemAsStringAsync("UserName");
             await this.FetTasks();
             await this.FetchUsers();
+            await this.FetchExperts();
 
             StateHasChanged();
         }
@@ -123,14 +224,18 @@
         }
         catch (Exception ex)
         {
-            
+
             throw;
         }
-        
+
     }
     private async Task FetchUsers()
     {
         users = await Http.GetFromJsonAsync<Employee[]>($"/api/usertask/getusers/{userName}");
+    }
+    private async Task FetchExperts()
+    {
+        experts = await Http.GetFromJsonAsync<Employee[]>($"/api/usertask/getexperts/{userName}");
     }
     public async Task ActionBeginHandler(ActionEventArgs<UserTask> args)
     {
@@ -138,7 +243,17 @@
         {
             // The Textbox component is disabled using its Enabled property
             //this.Enabled = false;
-            Console.WriteLine("");
+            args.PreventRender = false;
+            var data = args.Data;
+            if (!data.IsAgreeWithDueDate)
+                ShowReason = true;
+            else
+                ShowReason = false;
+
+            if (data.IsExpertHelpRequired)
+                ShowExperts = true;
+            else
+                ShowExperts = false;
         }
         //else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Add")
         //{
@@ -168,17 +283,18 @@
         if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Add) || args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.BeginEdit))
         {
             //MyGrid.PreventRender(false);
+            args.PreventRender = false;
         }
         else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Add")
         {
             Console.WriteLine("");
             var data = args.Data;
             userTaskCls = new()
-            {
-                 Tasks = data.Tasks,
-                 Description = data.Description,
-                 UserId = data.UserId
-            };
+                {
+                    Tasks = data.Tasks,
+                    Description = data.Description,
+                    UserId = data.UserId
+                };
             var result = await Http.PostAsJsonAsync("/api/usertask/addtask", userTaskCls);
             var res = result.Content.ReadAsStringAsync().Result;
 
@@ -190,7 +306,9 @@
         else if (args.RequestType == Syncfusion.Blazor.Grids.Action.Save && args.Action == "Edit")
         {
             var data = args.Data;
-             userTaskCls = new()
+            if (data.IsAgreeWithDueDate) { data.Reason = ""; }
+            if (!data.IsExpertHelpRequired) { data.ExpertId = 0; }
+            userTaskCls = new()
             {
                 Id = data.Id,
                 Tasks = data.Tasks,
@@ -198,7 +316,12 @@
                 UserId = data.UserId,
                 TaskStatusId = data.TaskStatusId,
                 //Comment = data.Comment
-                Remarks = data.Remarks
+                Remarks = data.Remarks,
+                IsAgreeWithDueDate = data.IsAgreeWithDueDate,
+                DueDate = data.DueDate,
+                Reason = data.Reason,
+                IsExpertHelpRequired = data.IsExpertHelpRequired,
+                ExpertId = data.ExpertId
             };
             var result = await Http.PostAsJsonAsync("/api/usertask/updatetask", userTaskCls);
             var res = result.Content.ReadAsStringAsync().Result;

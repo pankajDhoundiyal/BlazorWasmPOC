@@ -5,6 +5,7 @@
 @inject HttpClient Http
 
 @inject NavigationManager navigationManager
+@inject IToastService toastService
 
 @if (loader == true)
 {
@@ -38,7 +39,12 @@ else
         if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
         {
             loader = false;
+            toastService.ShowToast(ToastLevel.Success, "User created Successfully");
             navigationManager.NavigateTo("admin/employee/index");
+        }else
+        {
+            loader = false;
+            toastService.ShowToast(ToastLevel.Error, "Error Occured");
         }
     }
 
@@ -50,7 +56,13 @@ else
         if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
         {
             loader = false;
+            toastService.ShowToast(ToastLevel.Success, "User updated Successfully");
             navigationManager.NavigateTo("admin/employee/index");
+        }
+        else
+        {
+            loader = false;
+            toastService.ShowToast(ToastLevel.Error, "Error Occured");
         }
     }
 }

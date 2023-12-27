@@ -73,6 +73,7 @@ namespace BlazorApp1.Server.Controllers
                 userTask.Description = task.Description;
                 userTask.TaskStatus = (DTaskStatus)task.TaskStatusId;
                 userTask.UserId = task.UserId;
+                userTask.DueDate = task.DueDate;
 
                 if (_dbContext.UserTask == null)
                 {
@@ -104,6 +105,7 @@ namespace BlazorApp1.Server.Controllers
             userTask.TaskStatus = (DTaskStatus)userTaskCls.TaskStatusId;
             userTask.Id = userTaskCls.Id;
             userTask.UserId = userTaskCls.UserId;
+            userTask.DueDate = userTaskCls.DueDate;
             _dbContext.Entry(userTask).State = EntityState.Modified;
 
             try
@@ -113,7 +115,7 @@ namespace BlazorApp1.Server.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                throw;
+                return BadRequest();
             }
 
             return NoContent();
@@ -121,20 +123,27 @@ namespace BlazorApp1.Server.Controllers
         [HttpDelete("DeleteTask/{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
-            if (_dbContext.UserTask == null)
+            try
             {
-                return NotFound();
+                if (_dbContext.UserTask == null)
+                {
+                    return NotFound();
+                }
+                var userTask = await _dbContext.UserTask.FindAsync(id);
+                if (userTask == null)
+                {
+                    return NotFound();
+                }
+
+                _dbContext.UserTask.Remove(userTask);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok("Delete Successfully!!");
             }
-            var userTask = await _dbContext.UserTask.FindAsync(id);
-            if (userTask == null)
+            catch(Exception ex)
             {
-                return NotFound();
-            }
-
-            _dbContext.UserTask.Remove(userTask);
-            await _dbContext.SaveChangesAsync();
-
-            return Ok("Delete Successfully!!");
+                return BadRequest();
+            }            
         }
     }
 }

@@ -8,7 +8,8 @@
 @using Blazored.SessionStorage
 @using BlazorApp1.Client.AuthProviders
 @inject ISessionStorageService _sessionStorage
-@inject AuthenticationStateProvider _stateProvider;
+@inject AuthenticationStateProvider _stateProvider
+@inject IToastService toastService
 @if (loader == true)
 {
     <div class="spinner"></div>
@@ -38,7 +39,7 @@
                             }
                             Login
                         </button>
-                        <NavLink href="account/register" class="btn btn-link">Register</NavLink>
+                        @* <NavLink href="account/register" class="btn btn-link">Register</NavLink> *@
                     </div>
                 </EditForm>
             </div>
@@ -58,6 +59,7 @@
         if (result != null && result.StatusCode == System.Net.HttpStatusCode.OK)
         {
             loader = false;
+            toastService.ShowToast(ToastLevel.Success, "Login Successful");
             await _sessionStorage.SetItemAsync<string>("UserName", model.Username);
             var res = await result.Content.ReadFromJsonAsync<Employee>();
             await _sessionStorage.SetItemAsync<string>("UserNameH", res.FullName);
@@ -71,6 +73,11 @@
                 ((TestAuthStateProvider)_stateProvider).MarkUserAsAuthenticated(model.Username);
                 navigationManager.NavigateTo("employee/task");
             }
+        }else
+        {
+            loader = false;
+            toastService.ShowToast(ToastLevel.Error, "Login failed!");
         }
+        StateHasChanged();
     }
 }
